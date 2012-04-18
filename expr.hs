@@ -18,17 +18,9 @@ languageDef = emptyDef {
 }
 
 lexer = Token.makeTokenParser languageDef
-
-floatParser = do
-    whiteSpace
-    digits <- many (Token.lexeme digit)
-    return (read digits) :: Double
-
-float = Token.float <|> floatParser
-
 reservedOp = Token.reservedOp lexer
 parens = Token.parens lexer
-number = float lexer
+number = Token.naturalOrFloat lexer
 whiteSpace = Token.whiteSpace lexer
 
 operators = [
@@ -36,9 +28,13 @@ operators = [
     [Infix (reservedOp "+" >> return (BinaryExpression AddOperator)) AssocLeft],
     [Infix (reservedOp "-" >> return (BinaryExpression SubOperator)) AssocLeft]]
 
+doubleFromEither :: Either Integer Double -> Double
+doubleFromEither (Right x) = x
+doubleFromEither (Left x) = fromInteger x
+
 term =
     parens expression <|>
-    liftM NumberLiteral number
+    liftM (NumberLiteral . doubleFromEither) number
 
 expression :: Parser Expression
 expression = buildExpressionParser operators term
