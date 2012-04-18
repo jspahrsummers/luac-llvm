@@ -1,3 +1,5 @@
+module Parser where
+
 import Control.Monad
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
