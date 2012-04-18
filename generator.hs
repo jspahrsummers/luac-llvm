@@ -1,5 +1,6 @@
 module Generator where
 
+import Parser
 import System.IO
 
 -- Writes a header of common LLVM assembly definitions to a file
@@ -21,3 +22,8 @@ statement fd line = do
 label :: Handle -> String -> IO ()
 label fd name = do
     hPutStrLn fd (name ++ ":")
+
+-- Writes an LLVM number literal
+expression :: Handle -> Expression -> IO ()
+expression fd (NumberLiteral num) = do
+    hPutStr fd (show num)
