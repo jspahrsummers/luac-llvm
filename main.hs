@@ -4,16 +4,25 @@ import System.IO
 import qualified Generator
 import qualified Parser
 
+-- Returns the contents of the text file at the given path
+getFileContents :: FilePath -> IO String
+getFileContents path = do
+    fd <- openFile path ReadMode
+    str <- hGetContents fd
+    return str
+
 -- Writes out the top level construct of a file, including header and footer
 writeTopLevelExpression :: Handle -> Parser.Expression -> IO ()
 writeTopLevelExpression fd exp = do
-    Generator.header fd
+    header <- getFileContents "header.ll"
+    footer <- getFileContents "footer.ll"
+
+    hPutStrLn fd header
     Generator.expression fd exp
-    Generator.footer fd
+    hPutStrLn fd footer
 
 main :: IO ()
 main = do
-    inFD <- openFile "input.lua" ReadMode
     outFD <- openFile "output.ll" WriteMode
-    contents <- hGetContents inFD
+    contents <- getFileContents "input.lua"
     either (putStrLn . show) (writeTopLevelExpression outFD) (Parser.compileExpression contents)
