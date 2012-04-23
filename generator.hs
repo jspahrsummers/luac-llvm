@@ -22,6 +22,6 @@ expression fd (Parser.NumberLiteral num) = do
 expression fd (Parser.NotExpression expr) = do
     expression fd expr
     statement fd ("%value = call %lua_toboolean_fp @lua_toboolean (%lua_State* %state, i32 -1)")
-    statement fd ("call %lua_pop_fp @lua_pop (%lua_State* %state, i32 1)")
+    statement fd ("call %pop_fp @pop (%lua_State* %state, i32 1)")
     statement fd ("%negatedValue = xor i32 %value, 1")
     statement fd ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %negatedValue)")
