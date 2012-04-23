@@ -9,6 +9,15 @@ declare %lua_State* @luaL_newstate ()
 declare void @lua_pushnumber (%lua_State*, %lua_Number)
 %lua_pushnumber_fp = type void (%lua_State*, %lua_Number)*
 
+declare void @lua_pop (%lua_State*, i32)
+%lua_pop_fp = type void (%lua_State*, i32)*
+
+declare i32 @lua_toboolean (%lua_State*, i32)
+%lua_toboolean_fp = type i32 (%lua_State*, i32)*
+
+declare void @lua_pushboolean (%lua_State*, i32)
+%lua_pushboolean_fp = type i32 (%lua_State, i32)*
+
 @globalState = private unnamed_addr global %lua_State* null
 
 define i32 @main () {
