@@ -16,4 +16,4 @@ label fd name = do
 -- Writes an LLVM number literal
 expression :: Handle -> Expression -> IO ()
 expression fd (NumberLiteral num) = do
-    hPutStr fd (show num)
+    statement fd ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show num) ++ ")")
