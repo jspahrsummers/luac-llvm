@@ -22,7 +22,11 @@ data Expression =
     NumberLiteral Double |
 
     -- A binary expression
-    BinaryExpression BinaryOperator Expression Expression
+    BinaryExpression BinaryOperator Expression Expression |
+
+    -- A function call
+    -- We'll want arguments to correspond to the function's arguments later
+    FunctionCall Name
 
     deriving Show
 
@@ -62,7 +66,17 @@ doubleFromEither (Left x) = fromInteger x
 
 term =
     parens expression <|>
+    functioncall <|>
     liftM (NumberLiteral . doubleFromEither) number
+
+-- Parses a function call
+functioncall = do
+    var <- identifier
+    spaces
+    char '('
+    spaces
+    char ')'
+    return $ FunctionCall $ Name var
 
 -- Parses expressions
 expression :: Parser Expression
