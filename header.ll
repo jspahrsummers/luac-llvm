@@ -3,6 +3,9 @@
 %lua_Integer = type i64
 %lua_Unsigned = type i32
 
+%dofile_t = type [7 x i8]
+@dofile = private unnamed_addr constant %dofile_t c"dofile\00"
+
 declare %lua_State* @luaL_newstate ()
 %luaL_newstate_fp = type %lua_State* ()*
 
@@ -18,6 +21,12 @@ declare i32 @lua_toboolean (%lua_State*, i32)
 declare void @lua_pushboolean (%lua_State*, i32)
 %lua_pushboolean_fp = type void (%lua_State*, i32)*
 
+declare void @lua_getfield (%lua_State*, i32, i8*)
+%lua_getfield_fp = type void (%lua_State*, i32, i8*)*
+
+declare void @lua_call (%lua_State*, i32, i32)
+%lua_call_fp = type void (%lua_State*, i32, i32)*
+
 @globalState = private unnamed_addr global %lua_State* null
 
 %pop_fp = type void (%lua_State*, i32)*
@@ -25,6 +34,12 @@ define fastcc void @pop (%lua_State* %state, i32 %count) {
     %index = sub i32 -1, %count
     call %lua_settop_fp @lua_settop (%lua_State* %state, i32 %index)
 
+    ret void
+}
+
+%getglobal_fp = type void (%lua_State*, i8*)*
+define fastcc void @getglobal (%lua_State* %state, i8* %global) {
+    call %lua_getfield_fp @lua_getfield (%lua_State* %state, i32 -10002, i8* %global)
     ret void
 }
 
