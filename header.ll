@@ -27,6 +27,9 @@ declare void @lua_getfield (%lua_State*, i32, i8*)
 declare void @lua_call (%lua_State*, i32, i32)
 %lua_call_fp = type void (%lua_State*, i32, i32)*
 
+declare void @luaL_openlibs (%lua_State*)
+%luaL_openlibs_fp = type void (%lua_State*)*
+
 @globalState = private unnamed_addr global %lua_State* null
 
 %pop_fp = type void (%lua_State*, i32)*
@@ -47,5 +50,7 @@ define i32 @main () {
 entry:
     %state = call %luaL_newstate_fp @luaL_newstate ()
     store %lua_State* %state, %lua_State** @globalState
+
+    call %luaL_openlibs_fp @luaL_openlibs (%lua_State* %state)
 
     ; generated code starts here
