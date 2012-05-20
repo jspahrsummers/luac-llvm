@@ -10,6 +10,9 @@ import qualified Text.ParserCombinators.Parsec.Token as Token
 data BinaryOperator = AddOperator | SubOperator
     deriving Show
 
+-- Represents any Lua identifier
+newtype Name = Name String deriving Show
+
 -- Represents any expression in an AST
 data Expression =
     -- Unary "not" expression
@@ -25,7 +28,9 @@ data Expression =
 
 -- Defines all Lua tokens
 languageDef = emptyDef {
-    Token.reservedOpNames = ["+", "-", "not"]
+    Token.reservedOpNames = ["+", "-", "not"],
+    Token.identStart = letter <|> char '_',
+    Token.identLetter = alphaNum <|> char '_'
 }
 
 lexer = Token.makeTokenParser languageDef
@@ -35,6 +40,9 @@ reservedOp = Token.reservedOp lexer
 
 -- Parses parentheses
 parens = Token.parens lexer
+
+-- Parses identifiers
+identifier = Token.identifier lexer
 
 -- Parses any integer or floating-point literal
 number = Token.naturalOrFloat lexer
