@@ -25,3 +25,9 @@ expression fd (Parser.NotExpression expr) = do
     statement fd ("call %pop_fp @pop (%lua_State* %state, i32 1)")
     statement fd ("%negatedValue = xor i32 %value, 1")
     statement fd ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %negatedValue)")
+
+-- TODO: add real handling of the function name here 
+expression fd (Parser.FunctionCall _) = do
+    statement fd ("%dofile = getelementptr inbounds %dofile_t* @dofile, i64 0, i64 0")
+    statement fd ("call %getglobal_fp @getglobal (%lua_State* %state, i8* %dofile)")
+    statement fd ("call %lua_call_fp @lua_call (%lua_State* %state, i32 0, i32 0)")
