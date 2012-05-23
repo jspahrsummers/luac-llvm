@@ -1,19 +1,17 @@
+{- Contains functions that generate LLVM assembly from an AST -}
 module Generator where
 
 import AST
 import System.IO
 
--- Writes an LLVM assembly statement
 putStatement :: Handle -> String -> IO ()
 putStatement fd line = do
     hPutStrLn fd ("\t" ++ line)
 
--- Writes an LLVM assembly label
 putLabel :: Handle -> String -> IO ()
 putLabel fd name = do
     hPutStrLn fd (name ++ ":")
 
--- Writes an LLVM number literal
 putExpression :: Handle -> Expression -> IO ()
 
 putExpression fd (NumberLiteral num) = do
@@ -26,7 +24,6 @@ putExpression fd (NotExpression expr) = do
     putStatement fd ("%negatedValue = xor i32 %value, 1")
     putStatement fd ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %negatedValue)")
 
--- TODO: add real handling of the function name here 
 putExpression fd (FunctionCall _) = do
     putStatement fd ("%dofile = getelementptr inbounds %dofile_t* @dofile, i64 0, i64 0")
     putStatement fd ("call %getglobal_fp @getglobal (%lua_State* %state, i8* %dofile)")
