@@ -51,7 +51,3 @@ functioncall = do
 
 expression :: Parser Expression
 expression = buildExpressionParser operators term
-
--- Parses a Lua string into an expression AST
-compileExpression :: String -> Either ParseError Expression
-compileExpression str = parse expression "" str
