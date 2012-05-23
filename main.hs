@@ -10,4 +10,4 @@ main :: IO ()
 main = do
     outFD <- openFile "output.ll" WriteMode
     contents <- getFileContents "input.lua"
-    either (putStrLn . show) (putTopLevelExpression outFD) (parse expression "" contents)
+    either (putStrLn . show) (putTopLevelExpression outFD) (parse Parser.exp "" contents)

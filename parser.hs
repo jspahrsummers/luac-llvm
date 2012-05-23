@@ -36,8 +36,8 @@ doubleFromEither (Right x) = x
 doubleFromEither (Left x) = fromInteger x
 
 -- Parsers for nonterminals
-term =
-    parens expression <|>
+prefixexp =
+    parens Parser.exp <|>
     functioncall <|>
     liftM (NumberLiteral . doubleFromEither) number
 
@@ -49,5 +49,5 @@ functioncall = do
     char ')'
     return $ FunctionCall $ Name var
 
-expression :: Parser Expression
-expression = buildExpressionParser operators term
+exp :: Parser Expression
+exp = buildExpressionParser operators prefixexp
