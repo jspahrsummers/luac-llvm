@@ -1,6 +1,6 @@
 module Generator where
 
-import qualified Parser
+import AST
 import System.IO
 
 -- Writes an LLVM assembly statement
@@ -14,12 +14,12 @@ label fd name = do
     hPutStrLn fd (name ++ ":")
 
 -- Writes an LLVM number literal
-expression :: Handle -> Parser.Expression -> IO ()
+expression :: Handle -> Expression -> IO ()
 
-expression fd (Parser.NumberLiteral num) = do
+expression fd (NumberLiteral num) = do
     statement fd ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show num) ++ ")")
 
-expression fd (Parser.NotExpression expr) = do
+expression fd (NotExpression expr) = do
     expression fd expr
     statement fd ("%value = call %lua_toboolean_fp @lua_toboolean (%lua_State* %state, i32 -1)")
     statement fd ("call %pop_fp @pop (%lua_State* %state, i32 1)")
@@ -27,7 +27,7 @@ expression fd (Parser.NotExpression expr) = do
     statement fd ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %negatedValue)")
 
 -- TODO: add real handling of the function name here 
-expression fd (Parser.FunctionCall _) = do
+expression fd (FunctionCall _) = do
     statement fd ("%dofile = getelementptr inbounds %dofile_t* @dofile, i64 0, i64 0")
     statement fd ("call %getglobal_fp @getglobal (%lua_State* %state, i8* %dofile)")
     statement fd ("call %lua_call_fp @lua_call (%lua_State* %state, i32 0, i32 0)")

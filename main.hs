@@ -1,5 +1,6 @@
 module Main where
 
+import AST
 import System.IO
 import qualified Generator
 import qualified Parser
@@ -12,7 +13,7 @@ getFileContents path = do
     return str
 
 -- Writes out the top level construct of a file, including header and footer
-writeTopLevelExpression :: Handle -> Parser.Expression -> IO ()
+writeTopLevelExpression :: Handle -> Expression -> IO ()
 writeTopLevelExpression fd exp = do
     header <- getFileContents "header.ll"
     footer <- getFileContents "footer.ll"

@@ -1,34 +1,11 @@
 module Parser where
 
+import AST
 import Control.Monad
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Token
-
--- Represents a binary operator in an AST
-data BinaryOperator = AddOperator | SubOperator
-    deriving Show
-
--- Represents any Lua identifier
-newtype Name = Name String deriving Show
-
--- Represents any expression in an AST
-data Expression =
-    -- Unary "not" expression
-    NotExpression Expression |
-    
-    -- A literal number value
-    NumberLiteral Double |
-
-    -- A binary expression
-    BinaryExpression BinaryOperator Expression Expression |
-
-    -- A function call
-    -- We'll want arguments to correspond to the function's arguments later
-    FunctionCall Name
-
-    deriving Show
 
 -- Defines all Lua tokens
 languageDef = emptyDef {
