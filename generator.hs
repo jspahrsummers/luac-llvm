@@ -2,6 +2,7 @@
 module Generator where
 
 import AST
+import IO
 import System.IO
 
 putStatement :: Handle -> String -> IO ()
@@ -28,3 +29,13 @@ putExpression fd (FunctionCall _) = do
     putStatement fd ("%dofile = getelementptr inbounds %dofile_t* @dofile, i64 0, i64 0")
     putStatement fd ("call %getglobal_fp @getglobal (%lua_State* %state, i8* %dofile)")
     putStatement fd ("call %lua_call_fp @lua_call (%lua_State* %state, i32 0, i32 0)")
+
+-- Writes the file's header, the root of the AST, and the footer
+putTopLevelExpression :: Handle -> Expression -> IO ()
+putTopLevelExpression fd exp = do
+    header <- getFileContents "header.ll"
+    footer <- getFileContents "footer.ll"
+
+    hPutStrLn fd header
+    putExpression fd exp
+    hPutStrLn fd footer
