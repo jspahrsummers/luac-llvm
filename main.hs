@@ -1,8 +1,8 @@
 module Main where
 
 import AST
+import Generator
 import System.IO
-import qualified Generator
 import qualified Parser
 
 -- Returns the contents of the text file at the given path
@@ -19,7 +19,7 @@ writeTopLevelExpression fd exp = do
     footer <- getFileContents "footer.ll"
 
     hPutStrLn fd header
-    Generator.expression fd exp
+    putExpression fd exp
     hPutStrLn fd footer
 
 main :: IO ()
