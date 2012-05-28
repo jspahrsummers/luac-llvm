@@ -25,17 +25,20 @@ putExpression :: GeneratorState -> Expression -> IO GeneratorState
 putExpression s (NumberLiteral num) = do
     putStatement s ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show num) ++ ")")
 
-putExpression s@(GeneratorState c fd) (NotExpression expr) = do
-    putExpression s expr
+putExpression s (NotExpression expr) = do
+    s2 <- putExpression s expr
 
-    let c2 = c + 1
-        s2 = GeneratorState c2 fd
-    putStatement s2 ("%value" ++ (show c) ++ " = call %lua_toboolean_fp @lua_toboolean (%lua_State* %state, i32 -1)")
-    putStatement s2 ("call %pop_fp @pop (%lua_State* %state, i32 1)")
+    let c2 = counter s2
+        c3 = (c2 + 1)
+        s3 = GeneratorState c3 (handle s2)
+    putStatement s3 ("%value" ++ (show c2) ++ " = call %lua_toboolean_fp @lua_toboolean (%lua_State* %state, i32 -1)")
+    putStatement s3 ("call %pop_fp @pop (%lua_State* %state, i32 1)")
 
-    let s3 = GeneratorState (c2 + 1) fd
-    putStatement s3 ("%value" ++ (show c2) ++ " = xor i32 %value, 1")
-    putStatement s3 ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %negatedValue)")
+    let s4 = GeneratorState (c3 + 1) (handle s3)
+    putStatement s4 ("%value" ++ (show c3) ++ " = xor i32 %value" ++ (show c2) ++ ", 1")
+    putStatement s4 ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %value" ++ (show c3) ++ ")")
+
+    return s4
 
 putExpression s (FunctionCall _) = do
     putStatement s ("%dofile = getelementptr inbounds %dofile_t* @dofile, i64 0, i64 0")
