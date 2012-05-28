@@ -28,17 +28,15 @@ putExpression s (NumberLiteral num) = do
 putExpression s (NotExpression expr) = do
     s2 <- putExpression s expr
 
-    let c2 = counter s2
-        c3 = (c2 + 1)
-        s3 = GeneratorState c3 (handle s2)
-    putStatement s3 ("%value" ++ (show c2) ++ " = call %lua_toboolean_fp @lua_toboolean (%lua_State* %state, i32 -1)")
-    putStatement s3 ("call %pop_fp @pop (%lua_State* %state, i32 1)")
+    let c1 = counter s2
+        c2 = (c1 + 1)
+        finalState = GeneratorState (c2 + 1) (handle s2)
 
-    let s4 = GeneratorState (c3 + 1) (handle s3)
-    putStatement s4 ("%value" ++ (show c3) ++ " = xor i32 %value" ++ (show c2) ++ ", 1")
-    putStatement s4 ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %value" ++ (show c3) ++ ")")
-
-    return s4
+    putStatement finalState ("%value" ++ (show c1) ++ " = call %lua_toboolean_fp @lua_toboolean (%lua_State* %state, i32 -1)")
+    putStatement finalState ("call %pop_fp @pop (%lua_State* %state, i32 1)")
+    putStatement finalState ("%value" ++ (show c2) ++ " = xor i32 %value" ++ (show c1) ++ ", 1")
+    putStatement finalState ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %value" ++ (show c2) ++ ")")
+    return finalState
 
 putExpression s (FunctionCall _) = do
     putStatement s ("%dofile = getelementptr inbounds %dofile_t* @dofile, i64 0, i64 0")
