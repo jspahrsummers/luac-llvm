@@ -5,7 +5,10 @@ import AST
 import IO
 import System.IO
 
-data GeneratorState = GeneratorState Int Handle
+data GeneratorState = GeneratorState {
+    counter :: Int,
+    handle :: Handle
+}
 
 putStatement :: GeneratorState -> String -> IO GeneratorState
 putStatement s@(GeneratorState c fd) line = do
