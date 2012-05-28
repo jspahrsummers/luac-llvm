@@ -1,2 +1,1 @@
-dofile()
-not 5.48
+not (not (not 5.48))
