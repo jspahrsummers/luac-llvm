@@ -2,7 +2,10 @@
 module AST where
 
 -- Represents any Lua identifier
-newtype Name = Name String deriving Show
+newtype Name = Name String
+
+instance Show Name where
+    show (Name s) = s
 
 data BinaryOperator = AddOperator | SubOperator
     deriving Show
