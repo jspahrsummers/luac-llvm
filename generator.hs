@@ -3,21 +3,23 @@ module Generator where
 
 import AST
 import IO
+import System.Directory
 import System.IO
 
 data GeneratorState = GeneratorState {
     counter :: Int,
-    handle :: Handle
+    outputHandle :: Handle,
+    tmpHandle :: Handle
 }
 
 putStatement :: GeneratorState -> String -> IO GeneratorState
-putStatement s@(GeneratorState c fd) line = do
-    hPutStrLn fd ("\t" ++ line)
+putStatement s line = do
+    hPutStrLn (tmpHandle s) ("\t" ++ line)
     return s
 
 putLabel :: GeneratorState -> String -> IO GeneratorState
-putLabel s@(GeneratorState c fd) name = do
-    hPutStrLn fd (name ++ ":")
+putLabel s name = do
+    hPutStrLn (tmpHandle s) (name ++ ":")
     return s
 
 putExpression :: GeneratorState -> Expression -> IO GeneratorState
@@ -30,7 +32,11 @@ putExpression s (NotExpression expr) = do
 
     let c1 = counter s2
         c2 = (c1 + 1)
-        finalState = GeneratorState (c2 + 1) (handle s2)
+        finalState = GeneratorState {
+            counter = c2 + 1,
+            tmpHandle = tmpHandle s2,
+            outputHandle = outputHandle s2
+        }
 
     putStatement finalState ("%value" ++ (show c1) ++ " = call %lua_toboolean_fp @lua_toboolean (%lua_State* %state, i32 -1)")
     putStatement finalState ("call %pop_fp @pop (%lua_State* %state, i32 1)")
@@ -47,8 +53,23 @@ putExpression s (FunctionCall _) = do
 putTopLevelExpression :: Handle -> Expression -> IO ()
 putTopLevelExpression fd exp = do
     header <- getFileContents "header.ll"
-    footer <- getFileContents "footer.ll"
-
     hPutStrLn fd header
-    putExpression (GeneratorState 1 fd) exp
+
+    tmpFD <- openFile "tmp.ll" ReadWriteMode
+
+    let s = GeneratorState { counter = 1, tmpHandle = tmpFD, outputHandle = fd }
+    putExpression s exp
+
+    hFlush tmpFD
+    hSeek tmpFD AbsoluteSeek 0
+
+    body <- hGetContents tmpFD
+    hPutStrLn fd body
+
+    footer <- getFileContents "footer.ll"
     hPutStrLn fd footer
+
+    hClose fd
+    hClose tmpFD
+    removeFile "tmp.ll"
+
