@@ -1,10 +1,8 @@
+
 %lua_State = type opaque
 %lua_Number = type double
 %lua_Integer = type i64
 %lua_Unsigned = type i32
-
-%dofile_t = type [7 x i8]
-@dofile = private unnamed_addr constant %dofile_t c"dofile\00"
 
 declare %lua_State* @luaL_newstate ()
 %luaL_newstate_fp = type %lua_State* ()*

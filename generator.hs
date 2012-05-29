@@ -44,10 +44,27 @@ putExpression s (NotExpression expr) = do
     putStatement finalState ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %value" ++ (show c2) ++ ")")
     return finalState
 
-putExpression s (FunctionCall _) = do
-    putStatement s ("%dofile = getelementptr inbounds %dofile_t* @dofile, i64 0, i64 0")
-    putStatement s ("call %getglobal_fp @getglobal (%lua_State* %state, i8* %dofile)")
+putExpression s (FunctionCall name) = do
+    let outFD = outputHandle s
+        tmpFD = tmpHandle s
+
+    let c = counter s
+        finalState = GeneratorState {
+            counter = c + 1,
+            tmpHandle = tmpFD,
+            outputHandle = outFD
+        }
+
+    let strLen = length (show name) + 1
+        strType = "[" ++ (show strLen) ++ " x i8]"
+
+    hPutStrLn outFD ("@string" ++ (show c) ++ " = private unnamed_addr constant " ++ strType ++ " c\"" ++ (show name) ++ "\\00\"")
+
+    putStatement s ("%string" ++ (show c) ++ " = getelementptr inbounds " ++ strType ++ "* @string" ++ (show c) ++ ", i64 0, i64 0")
+    putStatement s ("call %getglobal_fp @getglobal (%lua_State* %state, i8* %string" ++ (show c) ++ ")")
     putStatement s ("call %lua_call_fp @lua_call (%lua_State* %state, i32 0, i32 0)")
+
+    return finalState
 
 -- Writes the file's header, the root of the AST, and the footer
 putTopLevelExpression :: Handle -> Expression -> IO ()
