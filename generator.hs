@@ -52,9 +52,6 @@ putExpression s (FunctionCall _) = do
 -- Writes the file's header, the root of the AST, and the footer
 putTopLevelExpression :: Handle -> Expression -> IO ()
 putTopLevelExpression fd exp = do
-    header <- getFileContents "header.ll"
-    hPutStrLn fd header
-
     tmpFD <- openFile "tmp.ll" ReadWriteMode
 
     let s = GeneratorState { counter = 1, tmpHandle = tmpFD, outputHandle = fd }
@@ -62,6 +59,9 @@ putTopLevelExpression fd exp = do
 
     hFlush tmpFD
     hSeek tmpFD AbsoluteSeek 0
+
+    header <- getFileContents "header.ll"
+    hPutStrLn fd header
 
     body <- hGetContents tmpFD
     hPutStrLn fd body
