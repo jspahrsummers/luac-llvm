@@ -47,7 +47,7 @@ functioncall = do
     char '('
     spaces
     char ')'
-    return $ FunctionCall $ Name var
+    return $ FunctionCall (Name var) []
 
 exp :: Parser Expression
 exp = buildExpressionParser operators prefixexp

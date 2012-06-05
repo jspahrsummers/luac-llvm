@@ -44,7 +44,7 @@ putExpression s (NotExpression expr) = do
     putStatement finalState ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 %value" ++ (show c2) ++ ")")
     return finalState
 
-putExpression s (FunctionCall name) = do
+putExpression s (FunctionCall name args) = do
     let outFD = outputHandle s
         tmpFD = tmpHandle s
 

@@ -14,5 +14,5 @@ data Expression =
     NotExpression Expression |
     NumberLiteral Double |
     BinaryExpression BinaryOperator Expression Expression |
-    FunctionCall Name
+    FunctionCall Name [Expression]
     deriving Show
