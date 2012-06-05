@@ -69,7 +69,8 @@ putExpression s (FunctionCall name) = do
 -- Writes the file's header, the root of the AST, and the footer
 putTopLevelExpression :: Handle -> Expression -> IO ()
 putTopLevelExpression fd exp = do
-    tmpFD <- openFile "tmp.ll" ReadWriteMode
+    tmpDir <- getTemporaryDirectory
+    (tmpPath, tmpFD) <- openTempFile tmpDir "tmp.ll"
 
     let s = GeneratorState { counter = 1, tmpHandle = tmpFD, outputHandle = fd }
     putExpression s exp
@@ -88,5 +89,4 @@ putTopLevelExpression fd exp = do
 
     hClose fd
     hClose tmpFD
-    removeFile "tmp.ll"
-
+    removeFile tmpPath
