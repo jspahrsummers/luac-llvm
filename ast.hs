@@ -11,7 +11,9 @@ data BinaryOperator = AddOperator | SubOperator
     deriving Show
 
 data Expression =
+    NilLiteral |
     NotExpression Expression |
+    BooleanLiteral Bool |
     NumberLiteral Double |
     BinaryExpression BinaryOperator Expression Expression |
     FunctionCall Name [Expression]

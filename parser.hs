@@ -11,6 +11,7 @@ import qualified Text.ParserCombinators.Parsec.Token as Token
 -- Language definition parameters specific to Lua
 languageDef = emptyDef {
     Token.reservedOpNames = ["+", "-", "not"],
+    Token.reservedNames = ["true", "false", "nil"],
     Token.identStart = letter <|> char '_',
     Token.identLetter = alphaNum <|> char '_'
 }
@@ -18,6 +19,7 @@ languageDef = emptyDef {
 lexer = Token.makeTokenParser languageDef
 
 -- Defines lexers that can be applied to an input stream
+reserved = Token.reserved lexer
 reservedOp = Token.reservedOp lexer
 parens = Token.parens lexer
 identifier = Token.identifier lexer
@@ -40,7 +42,20 @@ doubleFromEither (Left x) = fromInteger x
 prefixexp =
     parens Parser.exp <|>
     functioncall <|>
-    liftM (NumberLiteral . doubleFromEither) number
+    liftM (NumberLiteral . doubleFromEither) number <|>
+    nil <|> true <|> false
+
+nil = do
+    reserved "nil"
+    return NilLiteral
+
+false = do
+    reserved "false"
+    return $ BooleanLiteral False
+
+true = do
+    reserved "true"
+    return $ BooleanLiteral True
 
 functioncall = do
     var <- identifier
