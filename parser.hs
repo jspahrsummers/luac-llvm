@@ -44,9 +44,7 @@ prefixexp =
 functioncall = do
     var <- identifier
     spaces
-    char '('
-    spaces
-    char ')'
+    parens spaces
     return $ FunctionCall (Name var) []
 
 exp :: Parser Expression
