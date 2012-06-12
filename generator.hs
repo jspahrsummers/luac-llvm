@@ -30,6 +30,15 @@ putArguments s (expr : args) = do
 
 putExpression :: GeneratorState -> Expression -> IO GeneratorState
 
+putExpression s NilLiteral = do
+    putStatement s ("call %lua_pushnil_fp @lua_pushnil (%lua_State* %state)")
+
+putExpression s (BooleanLiteral True) = do
+    putStatement s ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 1)")
+
+putExpression s (BooleanLiteral False) = do
+    putStatement s ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 0)")
+
 putExpression s (NumberLiteral num) = do
     putStatement s ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show num) ++ ")")
 
