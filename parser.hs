@@ -23,6 +23,7 @@ parens = Token.parens lexer
 identifier = Token.identifier lexer
 number = Token.naturalOrFloat lexer
 whiteSpace = Token.whiteSpace lexer
+commaSep = Token.commaSep lexer
 
 -- Defines all Lua operators, their precedence, and their associativity
 operators = [
@@ -44,8 +45,8 @@ prefixexp =
 functioncall = do
     var <- identifier
     spaces
-    parens spaces
-    return $ FunctionCall (Name var) []
+    args <- parens (commaSep Parser.exp)
+    return $ FunctionCall (Name var) args
 
 exp :: Parser Expression
 exp = buildExpressionParser operators prefixexp

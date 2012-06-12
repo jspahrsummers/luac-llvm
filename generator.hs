@@ -22,6 +22,12 @@ putLabel s name = do
     hPutStrLn (tmpHandle s) (name ++ ":")
     return s
 
+putArguments :: GeneratorState -> [Expression] -> IO GeneratorState
+putArguments s [] = return s
+putArguments s (expr : args) = do
+    finalState <- putExpression s expr
+    putArguments finalState args
+
 putExpression :: GeneratorState -> Expression -> IO GeneratorState
 
 putExpression s (NumberLiteral num) = do
@@ -49,7 +55,7 @@ putExpression s (FunctionCall name args) = do
         tmpFD = tmpHandle s
 
     let c = counter s
-        finalState = GeneratorState {
+        nextState = GeneratorState {
             counter = c + 1,
             tmpHandle = tmpFD,
             outputHandle = outFD
@@ -60,10 +66,11 @@ putExpression s (FunctionCall name args) = do
 
     hPutStrLn outFD ("@string" ++ (show c) ++ " = private unnamed_addr constant " ++ strType ++ " c\"" ++ (show name) ++ "\\00\"")
 
-    putStatement s ("%string" ++ (show c) ++ " = getelementptr inbounds " ++ strType ++ "* @string" ++ (show c) ++ ", i64 0, i64 0")
-    putStatement s ("call %getglobal_fp @getglobal (%lua_State* %state, i8* %string" ++ (show c) ++ ")")
-    putStatement s ("call %lua_call_fp @lua_call (%lua_State* %state, i32 0, i32 0)")
+    putStatement nextState ("%string" ++ (show c) ++ " = getelementptr inbounds " ++ strType ++ "* @string" ++ (show c) ++ ", i64 0, i64 0")
+    putStatement nextState ("call %getglobal_fp @getglobal (%lua_State* %state, i8* %string" ++ (show c) ++ ")")
+    finalState <- putArguments nextState args
 
+    putStatement finalState ("call %lua_call_fp @lua_call (%lua_State* %state, i32 " ++ (show $ length args) ++ ", i32 1)")
     return finalState
 
 -- Writes the file's header, the root of the AST, and the footer
