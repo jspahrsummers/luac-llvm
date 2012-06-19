@@ -12,6 +12,11 @@ data GeneratorState = GeneratorState {
     tmpHandle :: Handle
 }
 
+data TableConstructorState = TableConstructorState {
+    generatorState :: GeneratorState,
+    nextIndex :: Int
+}
+
 putStatement :: GeneratorState -> String -> IO GeneratorState
 putStatement s line = do
     hPutStrLn (tmpHandle s) ("\t" ++ line)
@@ -29,21 +34,9 @@ putArguments s (expr : args) = do
     finalState <- putArguments nextState args
     return finalState
 
-putExpression :: GeneratorState -> Expression -> IO GeneratorState
-
-putExpression s NilLiteral = do
-    putStatement s ("call %lua_pushnil_fp @lua_pushnil (%lua_State* %state)")
-
-putExpression s (BooleanLiteral True) = do
-    putStatement s ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 1)")
-
-putExpression s (BooleanLiteral False) = do
-    putStatement s ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 0)")
-
-putExpression s (NumberLiteral num) = do
-    putStatement s ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show num) ++ ")")
-
-putExpression s (StringLiteral str) = do
+-- Emits code to push a string (with explicit length) onto the stack
+putString :: GeneratorState -> String -> IO GeneratorState
+putString s str = do
     let outFD = outputHandle s
         c = counter s
         finalState = GeneratorState {
@@ -60,6 +53,22 @@ putExpression s (StringLiteral str) = do
     putStatement finalState ("%string" ++ (show c) ++ " = getelementptr inbounds " ++ strType ++ "* @string" ++ (show c) ++ ", i64 0, i64 0")
     putStatement finalState ("call %lua_pushlstring_fp @lua_pushlstring (%lua_State* %state, i8* %string" ++ (show c) ++ ", i64 " ++ (show strLen) ++ ")")
     return finalState
+
+putExpression :: GeneratorState -> Expression -> IO GeneratorState
+
+putExpression s NilLiteral = do
+    putStatement s ("call %lua_pushnil_fp @lua_pushnil (%lua_State* %state)")
+
+putExpression s (BooleanLiteral True) = do
+    putStatement s ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 1)")
+
+putExpression s (BooleanLiteral False) = do
+    putStatement s ("call %lua_pushboolean_fp @lua_pushboolean (%lua_State* %state, i32 0)")
+
+putExpression s (NumberLiteral num) = do
+    putStatement s ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show num) ++ ")")
+
+putExpression s (StringLiteral str) = putString s str
 
 putExpression s (NotExpression expr) = do
     s2 <- putExpression s expr
@@ -98,6 +107,55 @@ putExpression s (FunctionCall name args) = do
 
     putStatement finalState ("call %lua_call_fp @lua_call (%lua_State* %state, i32 " ++ (show $ length args) ++ ", i32 1)")
     return finalState
+
+putExpression s (TableConstructor fields) = do
+    putStatement s ("call %lua_createtable_fp @lua_createtable (%lua_State* %state, i32 0, i32 0)")
+
+    let tableState = TableConstructorState { generatorState = s, nextIndex = 1 }
+    finalTableState <- putFields tableState fields
+
+    return $ generatorState finalTableState
+
+putFields :: TableConstructorState -> [TableField] -> IO TableConstructorState
+putFields s [] = return s
+putFields s ((TableField key value) : remaining) = do
+    s2 <- putFieldKey s key
+    gs3 <- putExpression (generatorState s2) value
+
+    let nextState = TableConstructorState {
+        generatorState = gs3,
+        nextIndex = (nextIndex s2)
+    }
+
+    finalState <- putFields nextState remaining
+    return finalState
+
+putFieldKey :: TableConstructorState -> TableKey -> IO TableConstructorState
+
+putFieldKey s (TableExpressionKey expr) = do
+    nextGeneratorState <- putExpression (generatorState s) expr
+    return $ TableConstructorState {
+        generatorState = nextGeneratorState,
+        nextIndex = (nextIndex s)
+    }
+
+putFieldKey s (TableNameKey name) = do
+    nextGeneratorState <- putString (generatorState s) (show name)
+    return $ TableConstructorState {
+        generatorState = nextGeneratorState,
+        nextIndex = (nextIndex s)
+    }
+
+putFieldKey s TableImplicitKey = do
+    let index = (nextIndex s)
+        gs = (generatorState s)
+
+    nextGeneratorState <- putStatement gs ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show index) ++ ")")
+    
+    return $ TableConstructorState {
+        generatorState = nextGeneratorState,
+        nextIndex = index + 1
+    }
 
 -- Writes the file's header, the root of the AST, and the footer
 putTopLevelExpression :: Handle -> Expression -> IO ()
