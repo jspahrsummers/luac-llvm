@@ -25,8 +25,9 @@ putLabel s name = do
 putArguments :: GeneratorState -> [Expression] -> IO GeneratorState
 putArguments s [] = return s
 putArguments s (expr : args) = do
-    finalState <- putExpression s expr
-    putArguments finalState args
+    nextState <- putExpression s expr
+    finalState <- putArguments nextState args
+    return finalState
 
 putExpression :: GeneratorState -> Expression -> IO GeneratorState
 
