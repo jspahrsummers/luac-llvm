@@ -34,6 +34,12 @@ declare void @lua_call (%lua_State*, i32, i32)
 declare void @luaL_openlibs (%lua_State*)
 %luaL_openlibs_fp = type void (%lua_State*)*
 
+declare void @lua_createtable (%lua_State*, i32, i32)
+%lua_createtable_fp = type void (%lua_State*, i32, i32)*
+
+declare void @lua_settable (%lua_State*, i32)
+%lua_settable_fp = type void (%lua_State*, i32)*
+
 @globalState = private unnamed_addr global %lua_State* null
 
 %pop_fp = type void (%lua_State*, i32)*
