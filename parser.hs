@@ -26,6 +26,7 @@ identifier = Token.identifier lexer
 number = Token.naturalOrFloat lexer
 whiteSpace = Token.whiteSpace lexer
 commaSep = Token.commaSep lexer
+string = Token.stringLiteral lexer
 
 -- Defines all Lua operators, their precedence, and their associativity
 operators = [
@@ -43,6 +44,7 @@ prefixexp =
     parens Parser.exp <|>
     functioncall <|>
     liftM (NumberLiteral . doubleFromEither) number <|>
+    liftM StringLiteral Parser.string <|>
     nil <|> true <|> false
 
 nil = do
