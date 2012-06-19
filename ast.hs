@@ -10,6 +10,15 @@ instance Show Name where
 data BinaryOperator = AddOperator | SubOperator
     deriving Show
 
+data TableKey =
+    TableExpressionKey Expression |
+    TableNameKey Name |
+    TableImplicitKey
+    deriving Show
+
+data TableField = TableField TableKey Expression
+    deriving Show
+
 data Expression =
     NilLiteral |
     NotExpression Expression |
@@ -17,5 +26,6 @@ data Expression =
     NumberLiteral Double |
     StringLiteral String |
     BinaryExpression BinaryOperator Expression Expression |
-    FunctionCall Name [Expression]
+    FunctionCall Name [Expression] |
+    TableConstructor [TableField]
     deriving Show
