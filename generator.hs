@@ -42,6 +42,24 @@ putExpression s (BooleanLiteral False) = do
 putExpression s (NumberLiteral num) = do
     putStatement s ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show num) ++ ")")
 
+putExpression s (StringLiteral str) = do
+    let outFD = outputHandle s
+        c = counter s
+        finalState = GeneratorState {
+            counter = c + 1,
+            tmpHandle = tmpHandle s,
+            outputHandle = outFD
+        }
+
+    let strLen = length str
+        strType = "[" ++ (show strLen) ++ " x i8]"
+
+    hPutStrLn outFD ("@string" ++ (show c) ++ " = private unnamed_addr constant " ++ strType ++ " c\"" ++ str ++ "\"")
+
+    putStatement finalState ("%string" ++ (show c) ++ " = getelementptr inbounds " ++ strType ++ "* @string" ++ (show c) ++ ", i64 0, i64 0")
+    putStatement finalState ("call %lua_pushlstring_fp @lua_pushlstring (%lua_State* %state, i8* %string" ++ (show c) ++ ", i64 " ++ (show strLen) ++ ")")
+    return finalState
+
 putExpression s (NotExpression expr) = do
     s2 <- putExpression s expr
 
