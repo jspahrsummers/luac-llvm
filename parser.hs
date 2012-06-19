@@ -22,11 +22,14 @@ lexer = Token.makeTokenParser languageDef
 reserved = Token.reserved lexer
 reservedOp = Token.reservedOp lexer
 parens = Token.parens lexer
+braces = Token.braces lexer
+brackets = Token.brackets lexer
 identifier = Token.identifier lexer
 number = Token.naturalOrFloat lexer
 whiteSpace = Token.whiteSpace lexer
 commaSep = Token.commaSep lexer
 string = Token.stringLiteral lexer
+symbol = Token.symbol lexer
 
 -- Defines all Lua operators, their precedence, and their associativity
 operators = [
@@ -40,9 +43,17 @@ doubleFromEither (Right x) = x
 doubleFromEither (Left x) = fromInteger x
 
 -- Parsers for nonterminals
+
+{-
+    exp ::=  nil | false | true | Number | String | ‘...’ | functiondef | 
+             prefixexp | tableconstructor | exp binop exp | unop exp 
+
+    prefixexp ::= var | functioncall | ‘(’ exp ‘)’
+-}
 prefixexp =
     parens Parser.exp <|>
     functioncall <|>
+    tableconstructor <|>
     liftM (NumberLiteral . doubleFromEither) number <|>
     liftM StringLiteral Parser.string <|>
     nil <|> true <|> false
@@ -59,11 +70,60 @@ true = do
     reserved "true"
     return $ BooleanLiteral True
 
+name = do
+    str <- identifier
+    return $ Name str
+
+-- prefixexp args | prefixexp ‘:’ Name args
 functioncall = do
-    var <- identifier
+    var <- name
     spaces
     args <- parens (commaSep Parser.exp)
-    return $ FunctionCall (Name var) args
+    return $ FunctionCall var args
+
+-- ‘{’ [field {fieldsep field} [fieldsep]] ‘}’
+tableconstructor = do
+    fieldList <- braces (field `sepEndBy` fieldsep)
+    return $ TableConstructor fieldList
+
+field = expressionKeyField <|> nameKeyField <|> implicitKeyField
+
+-- ‘[’ exp ‘]’ ‘=’ exp
+expressionKeyField = do
+    spaces
+    key <- brackets Parser.exp
+
+    spaces
+    symbol "="
+
+    value <- Parser.exp
+    spaces
+
+    return $ TableField (TableExpressionKey key) value
+
+-- Name ‘=’ exp
+nameKeyField = do
+    spaces
+    key <- name
+
+    spaces
+    symbol "="
+
+    value <- Parser.exp
+    spaces
+
+    return $ TableField (TableNameKey key) value
+
+-- exp
+implicitKeyField = do
+    spaces
+    value <- Parser.exp
+    spaces
+
+    return $ TableField TableImplicitKey value
+
+-- ‘,’ | ‘;’
+fieldsep = symbol "," <|> symbol ";"
 
 exp :: Parser Expression
 exp = buildExpressionParser operators prefixexp
