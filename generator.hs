@@ -79,12 +79,10 @@ putExpression s (NotExpression expr) = do
 
 putExpression s (FunctionCall name args) = do
     let outFD = outputHandle s
-        tmpFD = tmpHandle s
-
-    let c = counter s
+        c = counter s
         nextState = GeneratorState {
             counter = c + 1,
-            tmpHandle = tmpFD,
+            tmpHandle = tmpHandle s,
             outputHandle = outFD
         }
 
