@@ -19,6 +19,9 @@ declare i32 @lua_toboolean (%lua_State*, i32)
 declare void @lua_pushboolean (%lua_State*, i32)
 %lua_pushboolean_fp = type void (%lua_State*, i32)*
 
+declare i8* @lua_pushlstring (%lua_State*, i8*, i64)
+%lua_pushlstring_fp = type i8* (%lua_State*, i8*, i64)*
+
 declare void @lua_pushnil (%lua_State*)
 %lua_pushnil_fp = type void (%lua_State*)*
 

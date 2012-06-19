@@ -1,1 +1,1 @@
-print(true, not false, nil)
+print("foo", not false, nil)
