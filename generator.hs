@@ -134,7 +134,7 @@ putFieldKey (TableNameKey name) = lift $ putStringConstant (show name)
 
 putFieldKey TableImplicitKey = do
     i <- nextIndex
-    lift $ putStatement ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show i) ++ ")")
+    lift $ putStatement ("call %lua_pushnumber_fp @lua_pushnumber (%lua_State* %state, %lua_Number " ++ (show i) ++ ".0)")
 
 -- Writes the file's header, the root of the AST, and the footer
 putTopLevelExpression :: Handle -> Expression -> IO ()
