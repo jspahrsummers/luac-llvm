@@ -125,6 +125,7 @@ putFields [] = return ()
 putFields ((TableField key value) : remaining) = do
     putFieldKey key
     lift $ putExpression value
+    lift $ putStatement ("call %lua_settable_fp @lua_settable (%lua_State* %state, i32 -3)")
 
     putFields remaining
 
